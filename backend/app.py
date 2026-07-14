@@ -16,3 +16,8 @@ def root():
     return {
         "message": "MineLawGPT Backend Running"
     }
+@app.get("/health")
+def health_check():
+    return {
+        "status": "healthy"
+    }
