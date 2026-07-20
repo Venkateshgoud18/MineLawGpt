@@ -1,4 +1,5 @@
 from services.pdf_loader import extract_pdf
+from services.txt_loader import extract_txt
 from services.chunker import chunk_document
 from services.embeddings import get_embeddings
 from services.vector_store import collection
@@ -6,9 +7,14 @@ from services.vector_store import collection
 import uuid
 
 
-def index_pdf(pdf_path, filename):
+def index_document(file_path, filename):
 
-    pages = extract_pdf(pdf_path)
+    if filename.lower().endswith('.pdf'):
+        pages = extract_pdf(file_path)
+    elif filename.lower().endswith('.txt'):
+        pages = extract_txt(file_path)
+    else:
+        raise ValueError("Unsupported file format. Please upload a PDF or TXT file.")
 
     chunks = chunk_document(pages)
 

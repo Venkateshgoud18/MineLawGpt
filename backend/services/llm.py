@@ -6,13 +6,13 @@ load_dotenv()
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-MODEL = "gpt-5.5"
+MODEL = "gpt-4o-mini"
 
 
 def generate_answer(question, context):
 
     prompt = f"""
-You are MineLawGPT.
+You are MineLawGPT, an intelligent assistant designed to help with mining laws and regulations.
 
 Answer ONLY using the context below.
 
@@ -21,14 +21,14 @@ If the answer is not present, say:
 
 Context:
 {context}
-
-Question:
-{question}
 """
 
-    response = client.responses.create(
+    response = client.chat.completions.create(
         model=MODEL,
-        input=prompt
+        messages=[
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": question}
+        ]
     )
 
-    return response.output_text
+    return response.choices[0].message.content
