@@ -7,7 +7,6 @@ router = APIRouter(
     tags=["Documents"]
 )
 
-# Create a sample mining laws file if it doesn't exist
 LAWS_FILE_PATH = "data/mining_laws.txt"
 
 os.makedirs("data", exist_ok=True)

@@ -23,7 +23,6 @@ async def upload_file(file: UploadFile = File(...)):
     try:
         result = index_document(path, file.filename)
     except Exception as e:
-        # Clean up file on failure
         os.remove(path)
         return {"error": str(e)}
 

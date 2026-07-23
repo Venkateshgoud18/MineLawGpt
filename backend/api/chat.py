@@ -7,7 +7,6 @@ router = APIRouter(
     tags=["Chat"]
 )
 
-
 @router.post("/")
 def chat(request: ChatRequest):
     try:

@@ -15,35 +15,37 @@
 }
 
 .laws-header-icon {
-  width: 60px;
-  height: 60px;
-  background: rgba(59, 130, 246, 0.08);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  border-radius: var(--border-radius-lg);
+  width: 56px;
+  height: 56px;
+  background: var(--accent-primary);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  color: #fff;
 }
 
 .laws-header h1 {
-  font-size: 2rem;
+  font-size: 2.2rem;
   font-weight: 700;
-  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+  color: var(--text-primary);
 }
 
 .laws-header p {
   color: var(--text-secondary);
-  font-size: 0.95rem;
+  font-size: 1rem;
   margin: 0;
 }
 
 .laws-count-badge {
   margin-left: auto;
-  background: var(--accent-gradient);
-  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
   padding: 6px 18px;
-  border-radius: 24px;
+  border-radius: 20px;
   font-size: 0.85rem;
   font-weight: 600;
   white-space: nowrap;
@@ -54,25 +56,29 @@
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
-  padding: 16px 20px;
+  padding: 16px;
   align-items: center;
+  background: rgba(28, 28, 30, 0.5);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border-radius: 24px;
+  border: 1px solid var(--glass-border);
 }
 
 .search-box {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(0,0,0,0.25);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--border-radius-sm);
-  padding: 8px 14px;
+  background: rgba(118, 118, 128, 0.24);
+  border-radius: 16px;
+  padding: 10px 16px;
   flex: 1;
   min-width: 200px;
-  transition: border-color 0.2s;
+  transition: background 0.2s ease;
 }
 
 .search-box:focus-within {
-  border-color: var(--accent-primary);
+  background: rgba(118, 118, 128, 0.32);
 }
 
 .search-input {
@@ -80,13 +86,13 @@
   border: none;
   outline: none;
   color: var(--text-primary);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-family: inherit;
   width: 100%;
 }
 
 .search-input::placeholder {
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 .category-filters {
@@ -96,27 +102,25 @@
 }
 
 .filter-btn {
-  padding: 7px 14px;
-  font-size: 0.82rem;
+  padding: 8px 16px;
+  font-size: 0.85rem;
   font-weight: 500;
   font-family: inherit;
-  border: 1px solid var(--glass-border);
-  background: transparent;
-  color: var(--text-secondary);
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
   border-radius: 20px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .filter-btn:hover {
-  color: var(--text-primary);
-  border-color: var(--accent-primary);
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .filter-btn.active {
-  background: rgba(59, 130, 246, 0.12);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
+  background: var(--text-primary);
+  color: var(--bg-color);
 }
 
 /* Laws List */
@@ -129,17 +133,22 @@
 .no-results {
   padding: 40px;
   text-align: center;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 /* Law Card */
 .law-card {
   overflow: hidden;
-  transition: border-color 0.25s;
+  background: var(--glass-bg);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  transition: transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .law-card:hover {
-  border-color: rgba(59, 130, 246, 0.25);
+  transform: scale(1.01);
 }
 
 .law-card-header {
@@ -159,38 +168,37 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .badge {
-  padding: 3px 10px;
+  padding: 4px 12px;
   border-radius: 20px;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
 
-.badge-central { background: rgba(59,130,246,0.12); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
-.badge-regulatory { background: rgba(168,85,247,0.12); color: #c084fc; border: 1px solid rgba(168,85,247,0.25); }
-.badge-procedural { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
-.badge-specialized { background: rgba(20,184,166,0.12); color: #2dd4bf; border: 1px solid rgba(20,184,166,0.25); }
+.badge-central { background: rgba(10, 132, 255, 0.15); color: #0a84ff; }
+.badge-regulatory { background: rgba(191, 90, 242, 0.15); color: #bf5af2; }
+.badge-procedural { background: rgba(255, 159, 10, 0.15); color: #ff9f0a; }
+.badge-specialized { background: rgba(48, 209, 88, 0.15); color: #30d158; }
 
 .category-tag {
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 3px 10px;
+  padding: 4px 12px;
   border-radius: 20px;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 500;
-  background: rgba(255,255,255,0.05);
-  color: var(--text-muted);
-  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
 }
 
 .law-title {
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   font-weight: 600;
   margin-bottom: 8px;
   color: var(--text-primary);
@@ -198,16 +206,28 @@
 }
 
 .law-summary {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: var(--text-secondary);
-  line-height: 1.6;
+  line-height: 1.5;
   margin: 0;
 }
 
 .expand-btn {
   flex-shrink: 0;
-  padding: 8px 10px;
-  color: var(--text-muted);
+  padding: 8px;
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.expand-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* Card Body */
@@ -218,11 +238,9 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   padding-top: 24px;
 }
-
-.law-section {}
 
 .section-heading {
   font-size: 0.85rem;
@@ -237,21 +255,22 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .section-point {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
+  gap: 12px;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  line-height: 1.5;
 }
 
 .point-icon {
   flex-shrink: 0;
   margin-top: 3px;
+  color: var(--accent-primary);
 }
 
 @media (max-width: 600px) {
