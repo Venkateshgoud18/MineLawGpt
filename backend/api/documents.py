@@ -20,6 +20,7 @@ An Act to amend and consolidate the law relating to the regulation of labour and
 2. The Mines and Minerals (Development and Regulation) Act, 1957
 An Act to provide for the development and regulation of mines and minerals.
 
+
 3. Coal Mines Regulations, 2017
 Regulations for ensuring safety, health, and proper working conditions in coal mines.
 

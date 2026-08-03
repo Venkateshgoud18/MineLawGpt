@@ -3,6 +3,7 @@ from services.txt_loader import extract_txt
 from services.chunker import chunk_document
 from services.embeddings import get_embeddings
 from services.vector_store import collection
+from services.translator import translate_to_english
 
 import uuid
 
@@ -17,6 +18,10 @@ def index_document(file_path, filename):
         raise ValueError("Unsupported file format. Please upload a PDF or TXT file.")
 
     chunks = chunk_document(pages)
+
+    for chunk in chunks:
+        if chunk["text"]:
+            chunk["text"] = translate_to_english(chunk["text"])
 
     texts = [chunk["text"] for chunk in chunks]
 
