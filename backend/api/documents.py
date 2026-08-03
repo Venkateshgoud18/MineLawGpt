@@ -29,6 +29,9 @@ Safety and operational guidelines for metalliferous mines.
 
 5. Environment Protection Act, 1986 (Mining Context)
 Guidelines and compliance requirements for environmental clearances, waste disposal, and pollution control in mining areas.
+                
+6. The Mines Rescue Rules, 1985
+Rules for the establishment and operation of mine rescue stations and teams.
 """)
 
 @router.get("/laws")
