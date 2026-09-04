@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.chat import router as chat_router
 from api.upload import router as upload_router
 from api.documents import router as documents_router
+from api.speech import router as speech_router
 
 app = FastAPI(
     title="MineLawGPT",
@@ -20,6 +21,7 @@ app.add_middleware(
 app.include_router(chat_router)
 app.include_router(upload_router)
 app.include_router(documents_router)
+app.include_router(speech_router)
 
 
 @app.get("/")
