@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { Send, Bot, User, BookOpen, Mic, Square } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import './components.css';
 
 
@@ -17,6 +18,7 @@ interface Source {
 }
 
 export default function ChatInterface() {
+  const { token } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'init',
@@ -55,6 +57,10 @@ export default function ChatInterface() {
     try {
       const response = await axios.post('http://localhost:8000/chat/', {
         question: userMessage.content
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       const assistantMessage: Message = {
@@ -136,6 +142,7 @@ export default function ChatInterface() {
       const response = await axios.post('http://localhost:8000/speech/transcribe', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
         },
       });
       

@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import axios from 'axios';
 import { UploadCloud, File, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import './components.css'; // We will create this for component-specific styles
 
 interface DocumentUploaderProps {
@@ -8,6 +9,7 @@ interface DocumentUploaderProps {
 }
 
 export default function DocumentUploader({ onUploadSuccess }: DocumentUploaderProps) {
+  const { token } = useAuth();
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -56,7 +58,8 @@ export default function DocumentUploader({ onUploadSuccess }: DocumentUploaderPr
     try {
       const response = await axios.post('http://localhost:8000/upload/', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data'
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
         }
       });
       

@@ -1,5 +1,6 @@
-import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, Home } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { BookOpen, Home, LogOut, User } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import './Navbar.css';
 
 function MineLawIcon({ size = 22, color = "currentColor" }: { size?: number; color?: string }) {
@@ -30,6 +31,13 @@ function MineLawIcon({ size = 22, color = "currentColor" }: { size?: number; col
 
 export default function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated, username, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <nav className="navbar glass-panel">
@@ -44,20 +52,47 @@ export default function Navbar() {
       </div>
 
       <div className="navbar-links">
-        <Link
-          to="/"
-          className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
-        >
-          <Home size={16} />
-          <span>Dashboard</span>
-        </Link>
-        <Link
-          to="/mining-laws"
-          className={`nav-link ${location.pathname === '/mining-laws' ? 'active' : ''}`}
-        >
-          <BookOpen size={16} />
-          <span>Mining Laws</span>
-        </Link>
+        {isAuthenticated ? (
+          <>
+            <Link
+              to="/"
+              className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
+            >
+              <Home size={16} />
+              <span>Dashboard</span>
+            </Link>
+            <Link
+              to="/mining-laws"
+              className={`nav-link ${location.pathname === '/mining-laws' ? 'active' : ''}`}
+            >
+              <BookOpen size={16} />
+              <span>Mining Laws</span>
+            </Link>
+            
+            <div style={{ width: '1px', height: '24px', backgroundColor: 'var(--border)', margin: '0 8px' }}></div>
+            
+            <div className="nav-link" style={{ cursor: 'default', color: 'var(--text-primary)' }}>
+              <User size={16} />
+              <span style={{ fontWeight: '500' }}>{username}</span>
+            </div>
+            
+            <button 
+              onClick={handleLogout}
+              className="nav-link"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }}
+              title="Logout"
+            >
+              <LogOut size={16} />
+              <span>Logout</span>
+            </button>
+          </>
+        ) : (
+          location.pathname !== '/login' && (
+            <Link to="/login" className="nav-link active" style={{ backgroundColor: 'var(--accent-primary)', color: 'white' }}>
+              <span>Sign In</span>
+            </Link>
+          )
+        )}
       </div>
     </nav>
   );
