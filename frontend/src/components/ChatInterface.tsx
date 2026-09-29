@@ -17,17 +17,18 @@ interface Source {
   page: number;
 }
 
+const WELCOME_MESSAGE: Message = {
+  id: 'init',
+  role: 'assistant',
+  content: 'Hello! I am MineLawGPT, your intelligent assistant for mining regulatory compliance. Ask me anything about mining laws, safety regulations, or environmental guidelines based on the documents you have uploaded.'
+};
+
 export default function ChatInterface() {
   const { token } = useAuth();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 'init',
-      role: 'assistant',
-      content: 'Hello! I am MineLawGPT, your intelligent assistant for mining regulatory compliance. Ask me anything about mining laws, safety regulations, or environmental guidelines based on the documents you have uploaded.'
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -36,6 +37,64 @@ export default function ChatInterface() {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  // Load previous chat history when the component mounts
+  useEffect(() => {
+    const fetchHistory = async () => {
+      if (!token) {
+        setIsHistoryLoading(false);
+        return;
+      }
+      try {
+        const response = await axios.get('http://localhost:8000/chat/history', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const history: { question: string; answer: string; sources?: Source[]; timestamp?: string }[] = response.data.history || [];
+
+        if (history.length > 0) {
+          const historyMessages: Message[] = [];
+          history.forEach((item, idx) => {
+            // Defensively handle old records where `answer` was stored as
+            // an object {answer: string, sources: [...]} instead of a plain string.
+            let answerText: string;
+            let sources: Source[] | undefined;
+
+            if (typeof item.answer === 'string') {
+              answerText = item.answer;
+              sources = item.sources;
+            } else if (item.answer && typeof item.answer === 'object') {
+              const obj = item.answer as { answer?: string; sources?: Source[] };
+              answerText = obj.answer ?? JSON.stringify(item.answer);
+              sources = obj.sources ?? item.sources;
+            } else {
+              answerText = String(item.answer ?? '');
+              sources = item.sources;
+            }
+
+            historyMessages.push({
+              id: `hist-user-${idx}`,
+              role: 'user',
+              content: item.question
+            });
+            historyMessages.push({
+              id: `hist-assistant-${idx}`,
+              role: 'assistant',
+              content: answerText,
+              sources
+            });
+          });
+          // Welcome message first, then the restored history
+          setMessages([WELCOME_MESSAGE, ...historyMessages]);
+        }
+      } catch (error) {
+        console.error('Failed to load chat history:', error);
+      } finally {
+        setIsHistoryLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, [token]);
 
   useEffect(() => {
     scrollToBottom();
@@ -175,6 +234,11 @@ export default function ChatInterface() {
       </div>
 
       <div className="chat-messages custom-scrollbar">
+        {isHistoryLoading && (
+          <div style={{ textAlign: 'center', padding: '8px', opacity: 0.6, fontSize: '0.85rem' }}>
+            Loading conversation history…
+          </div>
+        )}
         {messages.map((msg) => (
           <div key={msg.id} className={`message-wrapper ${msg.role}`}>
             <div className="avatar">
@@ -226,7 +290,7 @@ export default function ChatInterface() {
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
           rows={1}
-          disabled={isLoading}
+          disabled={isLoading || isHistoryLoading}
         />
         <button 
           className={`glass-button action-button mic-button ${isRecording ? 'recording' : ''}`}
@@ -240,7 +304,7 @@ export default function ChatInterface() {
         <button 
           className="glass-button primary-button send-button" 
           onClick={handleSend}
-          disabled={!inputValue.trim() || isLoading}
+          disabled={!inputValue.trim() || isLoading || isHistoryLoading}
         >
           <Send size={18} />
         </button>

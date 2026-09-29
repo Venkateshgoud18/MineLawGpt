@@ -16,7 +16,6 @@ router = APIRouter(
 @router.post("/transcribe")
 async def transcribe_audio(file: UploadFile = File(...)):
     try:
-        # Save the uploaded file to a temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_audio:
             shutil.copyfileobj(file.file, temp_audio)
             temp_file_path = temp_audio.name

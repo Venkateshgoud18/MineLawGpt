@@ -12,6 +12,29 @@ router = APIRouter(
     tags=["Chat"]
 )
 
+@router.get("/history")
+async def get_chat_history(current_user: TokenData = Depends(get_current_user)):
+    """Return all previous chat messages for the logged-in user, oldest first."""
+    try:
+        db = get_database()
+        chats_collection = db["chats"]
+        cursor = chats_collection.find(
+            {"username": current_user.username},
+            {"_id": 0, "question": 1, "answer": 1, "sources": 1, "timestamp": 1}
+        ).sort("timestamp", 1)
+
+        history = []
+        async for doc in cursor:
+            history.append({
+                "question": doc["question"],
+                "answer": doc["answer"],
+                "sources": doc.get("sources", []),
+                "timestamp": doc["timestamp"].isoformat() if doc.get("timestamp") else None,
+            })
+        return {"history": history}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/")
 async def chat(
     request: ChatRequest,
