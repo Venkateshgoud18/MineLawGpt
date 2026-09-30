@@ -30,6 +30,7 @@ export default function ChatInterface() {
   const [isLoading, setIsLoading] = useState(false);
   const [isHistoryLoading, setIsHistoryLoading] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -54,8 +55,6 @@ export default function ChatInterface() {
         if (history.length > 0) {
           const historyMessages: Message[] = [];
           history.forEach((item, idx) => {
-            // Defensively handle old records where `answer` was stored as
-            // an object {answer: string, sources: [...]} instead of a plain string.
             let answerText: string;
             let sources: Source[] | undefined;
 
@@ -83,7 +82,6 @@ export default function ChatInterface() {
               sources
             });
           });
-          // Welcome message first, then the restored history
           setMessages([WELCOME_MESSAGE, ...historyMessages]);
         }
       } catch (error) {
@@ -98,10 +96,10 @@ export default function ChatInterface() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isLoading]);
+  }, [messages, isLoading, streamingMessageId]);
 
   const handleSend = async () => {
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || isLoading || Boolean(streamingMessageId)) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -113,33 +111,111 @@ export default function ChatInterface() {
     setInputValue('');
     setIsLoading(true);
 
+    const assistantMsgId = (Date.now() + 1).toString();
+    let hasAddedAssistantMsg = false;
+    let accumulatedContent = '';
+    let accumulatedSources: Source[] = [];
+
     try {
-      const response = await axios.post('http://localhost:8000/chat/', {
-        question: userMessage.content
-      }, {
+      const response = await fetch('http://localhost:8000/chat/stream', {
+        method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
-        }
+        },
+        body: JSON.stringify({ question: userMessage.content })
       });
 
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: response.data.answer,
-        sources: response.data.sources
-      };
+      if (!response.ok || !response.body) {
+        throw new Error(`Failed to stream: ${response.statusText}`);
+      }
 
-      setMessages(prev => [...prev, assistantMessage]);
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith('data:')) continue;
+          const dataStr = trimmed.replace(/^data:\s*/, '');
+          if (dataStr === '[DONE]') continue;
+
+          try {
+            const parsed = JSON.parse(dataStr);
+            if (parsed.type === 'token' && parsed.content) {
+              accumulatedContent += parsed.content;
+              const currentContent = accumulatedContent;
+
+              if (!hasAddedAssistantMsg) {
+                hasAddedAssistantMsg = true;
+                setIsLoading(false);
+                setStreamingMessageId(assistantMsgId);
+                setMessages(prev => [
+                  ...prev,
+                  {
+                    id: assistantMsgId,
+                    role: 'assistant',
+                    content: currentContent,
+                    sources: []
+                  }
+                ]);
+              } else {
+                setMessages(prev =>
+                  prev.map(msg =>
+                    msg.id === assistantMsgId
+                      ? { ...msg, content: currentContent }
+                      : msg
+                  )
+                );
+              }
+            } else if (parsed.type === 'sources' && parsed.sources) {
+              accumulatedSources = parsed.sources;
+              setMessages(prev =>
+                prev.map(msg =>
+                  msg.id === assistantMsgId
+                    ? { ...msg, sources: accumulatedSources }
+                    : msg
+                )
+              );
+            }
+          } catch {
+            // ignore partial JSON chunks
+          }
+        }
+      }
+
+      if (!hasAddedAssistantMsg) {
+        setMessages(prev => [
+          ...prev,
+          {
+            id: assistantMsgId,
+            role: 'assistant',
+            content: accumulatedContent || 'No response generated.',
+            sources: accumulatedSources
+          }
+        ]);
+      }
     } catch (error) {
       console.error('Chat error:', error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'Sorry, I encountered an error while processing your request. Please ensure the backend server is running and your OpenAI API key is valid.'
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      if (!hasAddedAssistantMsg) {
+        const errorMessage: Message = {
+          id: assistantMsgId,
+          role: 'assistant',
+          content: 'Sorry, I encountered an error while processing your request. Please ensure the backend server is running and your OpenAI API key is valid.'
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      }
     } finally {
       setIsLoading(false);
+      setStreamingMessageId(null);
     }
   };
 
@@ -245,7 +321,7 @@ export default function ChatInterface() {
               {msg.role === 'assistant' ? <Bot size={20} /> : <User size={20} />}
             </div>
             <div className="message-content">
-              <div className="text">{msg.content}</div>
+              <div className={`text ${streamingMessageId === msg.id ? 'typing-cursor' : ''}`}>{msg.content}</div>
               
               {/* Render sources if available and not empty */}
               {msg.sources && msg.sources.length > 0 && (
@@ -290,12 +366,12 @@ export default function ChatInterface() {
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
           rows={1}
-          disabled={isLoading || isHistoryLoading}
+          disabled={isLoading || isHistoryLoading || Boolean(streamingMessageId)}
         />
         <button 
           className={`glass-button action-button mic-button ${isRecording ? 'recording' : ''}`}
           onClick={toggleRecording}
-          disabled={isLoading && !isRecording}
+          disabled={(isLoading || Boolean(streamingMessageId)) && !isRecording}
           title={isRecording ? "Stop Recording" : "Start Recording"}
           style={isRecording ? { backgroundColor: 'rgba(239, 68, 68, 0.2)', borderColor: 'rgba(239, 68, 68, 0.5)' } : {}}
         >
@@ -304,7 +380,7 @@ export default function ChatInterface() {
         <button 
           className="glass-button primary-button send-button" 
           onClick={handleSend}
-          disabled={!inputValue.trim() || isLoading || isHistoryLoading}
+          disabled={!inputValue.trim() || isLoading || isHistoryLoading || Boolean(streamingMessageId)}
         >
           <Send size={18} />
         </button>

@@ -184,3 +184,35 @@ def run_agent(question: str) -> dict:
     sources = final_state.get("sources", [])
 
     return {"answer": answer, "sources": sources}
+
+
+def stream_agent(question: str):
+    """
+    Stream tokens from LangGraph agentic RAG pipeline.
+
+    Yields dicts:
+        {"type": "token", "content": str}
+        {"type": "sources", "sources": list[dict]}
+    """
+    initial_state: AgentState = {
+        "messages": [HumanMessage(content=question)],
+        "sources": [],
+    }
+
+    sources = []
+    for mode, data in graph.stream(initial_state, stream_mode=["messages", "values"]):
+        if mode == "messages":
+            chunk, meta = data
+            if meta.get("langgraph_node") == "agent":
+                # Stream only text content, avoid tool calls
+                if chunk.content and not getattr(chunk, "tool_calls", None) and not getattr(chunk, "tool_call_chunks", None):
+                    content = chunk.content if isinstance(chunk.content, str) else str(chunk.content)
+                    if content:
+                        yield {"type": "token", "content": content}
+        elif mode == "values":
+            if isinstance(data, dict):
+                current_sources = data.get("sources", [])
+                if current_sources:
+                    sources = current_sources
+
+    yield {"type": "sources", "sources": sources}
