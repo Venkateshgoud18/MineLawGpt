@@ -5,6 +5,9 @@ python-dotenv
 openai
 chromadb
 langchain-text-splitters
+langchain-openai
+langchain-core
+langgraph
 pypdf
 python-multipart
 deep-translator
