@@ -23,9 +23,7 @@ from services.retriever import retrieve
 
 load_dotenv()
 
-# ---------------------------------------------------------------------------
-# State definition
-# ---------------------------------------------------------------------------
+
 
 class AgentState(TypedDict):
     """The graph state passed between every node."""
